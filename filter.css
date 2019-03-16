@@ -1,0 +1,22 @@
+#filter {
+    margin-top: 20px;
+}
+
+.row-margin {
+    margin-right: 10px;
+}
+
+.col-margin {
+    margin-top: 15px;
+}
+
+.remove-icon {
+    opacity: 0.3;
+    line-height: 38px;
+    cursor: pointer;
+}
+
+.remove-icon:hover {
+    opacity: 0.5;
+}
+
