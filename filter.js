@@ -18,6 +18,7 @@ class Filter {
     // render all except condition
     render() {
         return `<form class="${this.settings.formClasses.join(' ')}">
+        <div id="conditionsContainer"></div>
         <button type="button" class="addCondition ${this.settings.buttonAddClasses.join(' ')}">+ Add condition</button>
         <hr>
         <div class="${this.settings.buttonsContainerClasses.join(' ')}">
@@ -42,35 +43,31 @@ class Filter {
                 this.defaultCondition += `<option value="${i}" ${defaultSelected}>${content} field</option>`;
             }
 
-            this.defaultCondition += `</select>`;
-
-            //operation select
-            this.defaultCondition += `<select class="operation ${this.settings.inputClasses.join(' ')}">`;
-
-            for (let i of this.settings.values[this.settings.defaultField]) { //values.text
-                let content = i.charAt(0).toUpperCase() + i.substr(1);
-                this.defaultCondition += `<option value="${i}">${content}</option>`;
-            }
-
             this.defaultCondition += `</select>
-                <input type="${this.settings.defaultField}" class="${this.settings.inputClasses.join(' ')}">
-                <span class="remove-icon hidden"></span>
-                </div>`;
+                                      <select class="operation ${this.settings.inputClasses.join(' ')}">`;
+
+            this.defaultCondition += this.renderSelectOperation(this.settings.defaultField);// .operation options
+            this.defaultCondition += `<span class="remove-icon hidden"></span></div>`;
         }
 
-        // add condition before +Add button
-        document.querySelector('.addCondition').insertAdjacentHTML('beforebegin' ,this.defaultCondition);
+        // add condition in #conditionsContainer
+        document.getElementById('conditionsContainer').insertAdjacentHTML('beforeend' ,this.defaultCondition);
 
         this.conditions++;
 
-        // навесить обработчик на изменение поля, вынести рендер связанного поля в отдельный метод
-        document.querySelector('.field').addEventListener('change', () => {
-            console.log('select');
-        });
+        let lastChild = document.getElementById('conditionsContainer').lastChild;
+        lastChild.querySelector('.field').addEventListener('change', (e) =>
+            lastChild.querySelector('.operation').innerHTML = this.renderSelectOperation(e.target.value));
 
-        // навесить обработчик на X
-        document.querySelector('.remove-icon').addEventListener('click', () => {
-            console.log('x');
+        lastChild.querySelector('.remove-icon').addEventListener('click', () => {
+            document.getElementById('conditionsContainer').removeChild(lastChild);
+            this.conditions--;
+            if (this.conditions === 1) {
+                document.querySelector('.remove-icon').classList.add('hidden');
+            }
+            if (this.conditions === this.settings.maxNumberOfStrings - 1) {
+                document.querySelector('.addCondition').classList.remove('hidden');
+            }
         });
 
         // hides +Add button
@@ -87,6 +84,20 @@ class Filter {
         }
     }
 
+    //operation select and input
+    renderSelectOperation(field) {
+        let result = '';
+
+        for (let i of this.settings.values[field]) { //values.text or values.number
+            let content = i.charAt(0).toUpperCase() + i.substr(1);
+            result += `<option value="${i}">${content}</option>`;
+        }
+
+        result += `</select>
+                    <input type="${field}" class="${this.settings.inputClasses.join(' ')}">`;
+        return result;
+    }
+
     addButtonsEvents() {
 
         // +Add button
@@ -94,8 +105,17 @@ class Filter {
             this.renderDefaultCondition());
 
         // Apply button
+        document.querySelector('.applyButton').addEventListener('click', () => {
+
+        });
 
         //Clear button
+        document.querySelector('.clearFilterButton').addEventListener('click', () => {
+            document.getElementById('conditionsContainer').innerHTML = '';
+            this.renderDefaultCondition();
+            document.querySelector('.remove-icon').classList.add('hidden');
+            document.querySelector('.addCondition').classList.remove('hidden');
+        });
 
     }
 }
