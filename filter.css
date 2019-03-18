@@ -6,6 +6,10 @@
     margin-right: 10px;
 }
 
+.row-padding {
+    padding: 10px;
+}
+
 .col-margin {
     margin-top: 15px;
 }
@@ -20,3 +24,10 @@
     opacity: 0.5;
 }
 
+.remove-icon:before {
+    content: "\2716";
+}
+
+.hidden {
+    display: none;
+}
