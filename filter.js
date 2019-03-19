@@ -5,35 +5,34 @@ class Filter {
     constructor(settings) {
         this.settings = settings;
         this.defaultCondition = null; // default condition html
-        this.conditions = 0; // number of conditions
+        this.conditionsCount = 0; // number of conditions
     }
 
     init() {
         let filterContainer = document.getElementById(`${this.settings.filterContainerId}`);
         filterContainer.innerHTML = this.render();
-        this.renderDefaultCondition();
-        this.addButtonsEvents();
+        this.addEvents();
     }
 
-    // render all except condition
     render() {
-        return `<form class="${this.settings.formClasses.join(' ')}">
-        <div id="conditionsContainer"></div>
-        <button type="button" class="addCondition ${this.settings.buttonAddClasses.join(' ')}">+ Add condition</button>
-        <hr>
-        <div class="${this.settings.buttonsContainerClasses.join(' ')}">
-            <button type="button" class="applyButton ${this.settings.buttonApplyClasses.join(' ')}">Apply</button>
-            <button type="button" class="clearFilterButton ${this.settings.buttonClearFilterClasses.join(' ')}">
-                Clear Filter</button>
-        </div>
-        </form>`;
+        let result = `<form class="${this.settings.formClasses.join(' ')}">
+                        <div id="conditionsContainer">`;
+        result += this.renderDefaultCondition();
+        result += `</div>
+                   <button type="button" class="addCondition ${this.settings.buttonAddClasses.join(' ')}">+ Add condition</button>
+                   <hr>
+                   <div class="${this.settings.buttonsContainerClasses.join(' ')}">
+                        <button type="button" class="applyButton ${this.settings.buttonApplyClasses.join(' ')}">Apply</button>
+                        <button type="button" class="clearFilterButton ${this.settings.buttonClearFilterClasses.join(' ')}">Clear Filter</button>
+                    </div>
+                    </form>`;
+        return result;
     }
 
     renderDefaultCondition() {
         if (!this.defaultCondition) {
             this.defaultCondition = `<div class="${this.settings.inputContainerClasses.join(' ')}">
-                                        <select class="field ${this.settings.inputClasses.join(' ')}">`;
-            // field select
+                                            <select class="field ${this.settings.inputClasses.join(' ')}">`;
             for (let i in this.settings.values) {
                 let defaultSelected = '';
                 if (i === this.settings.defaultField) {
@@ -42,81 +41,89 @@ class Filter {
                 let content = i.charAt(0).toUpperCase() + i.substr(1); // make first letter capital
                 this.defaultCondition += `<option value="${i}" ${defaultSelected}>${content} field</option>`;
             }
-
             this.defaultCondition += `</select>
-                                      <select class="operation ${this.settings.inputClasses.join(' ')}">`;
-
-            this.defaultCondition += this.renderSelectOperation(this.settings.defaultField);// .operation options
-            this.defaultCondition += `<span class="remove-icon hidden"></span></div>`;
+                                          <select class="operation ${this.settings.inputClasses.join(' ')}">`;
+            this.defaultCondition += this.renderSelectOptions(this.settings.defaultField);// .operation options
+            this.defaultCondition += `</select>
+                                      <input type="text" class="${this.settings.inputClasses.join(' ')}">
+                                      <span class="remove-icon hidden"></span></div>`;
         }
 
-        // add condition in #conditionsContainer
-        document.getElementById('conditionsContainer').insertAdjacentHTML('beforeend' ,this.defaultCondition);
-
-        this.conditions++;
-
-        let lastChild = document.getElementById('conditionsContainer').lastChild;
-        lastChild.querySelector('.field').addEventListener('change', (e) =>
-            lastChild.querySelector('.operation').innerHTML = this.renderSelectOperation(e.target.value));
-
-        lastChild.querySelector('.remove-icon').addEventListener('click', () => {
-            document.getElementById('conditionsContainer').removeChild(lastChild);
-            this.conditions--;
-            if (this.conditions === 1) {
-                document.querySelector('.remove-icon').classList.add('hidden');
-            }
-            if (this.conditions === this.settings.maxNumberOfStrings - 1) {
-                document.querySelector('.addCondition').classList.remove('hidden');
-            }
-        });
-
-        // hides +Add button
-        if (this.conditions === this.settings.maxNumberOfStrings) {
-            document.querySelector('.addCondition').classList.add('hidden');
-        }
-
-        // shows X buttons
-        if (this.conditions > 1) {
-            let removeIcons = document.querySelectorAll('.remove-icon');
-            for (let i = 0; i < removeIcons.length; i++) {
-                removeIcons[i].classList.remove('hidden')
-            }
-        }
+        return this.defaultCondition;
     }
 
-    //operation select and input
-    renderSelectOperation(field) {
+    //render options for .operation select
+    renderSelectOptions(field) {
         let result = '';
-
-        for (let i of this.settings.values[field]) { //values.text or values.number
+        for (let i of this.settings.values[field]) {
             let content = i.charAt(0).toUpperCase() + i.substr(1);
             result += `<option value="${i}">${content}</option>`;
         }
-
-        result += `</select>
-                    <input type="${field}" class="${this.settings.inputClasses.join(' ')}">`;
         return result;
     }
 
-    addButtonsEvents() {
+    addEvents() {
+        this.addConditionEvents();
+        this.addButtonsEvents();
+    }
 
+    addConditionEvents() {
+        this.conditionsCount++;
+        this.conditionsCountCheck();
+
+        // change field
+        let lastCondition = document.getElementById('conditionsContainer').lastChild;
+        lastCondition.querySelector('.field').addEventListener('change', (e) =>
+        lastCondition.querySelector('.operation').innerHTML = this.renderSelectOptions(e.target.value));
+
+        // remove condition (x)
+        lastCondition.querySelector('.remove-icon').addEventListener('click', () => {
+            document.getElementById('conditionsContainer').removeChild(lastCondition);
+            this.conditionsCount--;
+            this.conditionsCountCheck();
+        });
+    }
+
+    conditionsCountCheck () {
+        if (this.conditionsCount === 1) {
+            document.querySelector('.remove-icon').classList.add('hidden'); // hides x
+        }
+        if (this.conditionsCount === this.settings.maxNumberOfStrings - 1) {
+            document.querySelector('.addCondition').classList.remove('hidden'); // shows +add
+        }
+        if (this.conditionsCount === this.settings.maxNumberOfStrings) {
+            document.querySelector('.addCondition').classList.add('hidden'); // removes +add
+        }
+        if (this.conditionsCount > 1) {
+            let removeIcons = document.querySelectorAll('.remove-icon'); // shows x
+            for (let i = 0; i < removeIcons.length; i++) {
+                removeIcons[i].classList.remove('hidden');
+            }
+        }
+    }
+
+    addButtonsEvents() {
         // +Add button
-        document.querySelector('.addCondition').addEventListener('click', () =>
-            this.renderDefaultCondition());
+        document.querySelector('.addCondition').addEventListener('click', () => {
+            this.addCondition();
+        });
 
         // Apply button
         document.querySelector('.applyButton').addEventListener('click', () => {
-
+            console.log('obj');
         });
 
         //Clear button
         document.querySelector('.clearFilterButton').addEventListener('click', () => {
             document.getElementById('conditionsContainer').innerHTML = '';
-            this.renderDefaultCondition();
-            document.querySelector('.remove-icon').classList.add('hidden');
-            document.querySelector('.addCondition').classList.remove('hidden');
+            this.conditionsCount = 0;
+            this.addCondition();
         });
+    }
 
+    addCondition () {
+        document.getElementById('conditionsContainer').insertAdjacentHTML('beforeend' ,this.defaultCondition);
+        this.addConditionEvents();
     }
 }
 
@@ -135,7 +142,7 @@ window.onload = () => {
             text: ['containing', 'exactly matching', 'begins with', 'ends with'],
             number: ['equal', 'greater than', 'less than']
         },
-        defaultField: 'text', // fields can be either text or number
+        defaultField: 'text',
     });
 
     filter.init();
