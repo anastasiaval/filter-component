@@ -119,7 +119,7 @@ class Filter {
         if (this.conditionsCount === 1) {
             document.querySelector('.remove-icon').classList.add('hidden'); // hides x
         }
-        if (this.conditionsCount === this.settings.maxNumberOfStrings - 1) {
+        if (this.conditionsCount === this.settings.maxNumberOfStrings - 1 || this.conditionsCount === 1) {
             document.querySelector('.addCondition').classList.remove('hidden'); // shows +add
         }
         if (this.conditionsCount === this.settings.maxNumberOfStrings) {
