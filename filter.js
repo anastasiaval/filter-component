@@ -12,12 +12,19 @@ class Filter {
         }; // result
     }
 
+    /**
+     * Инициализация фильтра.
+     */
     init() {
         let filterContainer = document.getElementById(`${this.settings.filterContainerId}`);
         filterContainer.innerHTML = this.render();
         this.addEvents();
     }
 
+    /**
+     * Создаёт html компонента.
+     * @returns {string}
+     */
     render() {
         let result = `<form class="${this.settings.formClasses.join(' ')}">
                           <div id="conditionsContainer">`;
@@ -36,6 +43,10 @@ class Filter {
         return result;
     }
 
+    /**
+     * Создаёт html стандартного условия.
+     * @returns {string}
+     */
     renderDefaultCondition() {
         if (!this.defaultCondition) {
             this.defaultCondition = `<div class="${this.settings.inputContainerClasses.join(' ')}">
@@ -59,7 +70,11 @@ class Filter {
         return this.defaultCondition;
     }
 
-    //render options for .operation select
+    /**
+     * Создаёт html опций значения фильтра.
+     * @param {string} field Значение поля фильтрации.
+     * @returns {string}
+     */
     renderSelectOptions(field) {
         let result = '';
         for (let i of this.settings.values[field]) {
@@ -69,11 +84,17 @@ class Filter {
         return result;
     }
 
+    /**
+     * Запускает методы обработчиков событий.
+     */
     addEvents() {
         this.addConditionEvents();
         this.addButtonsEvents();
     }
 
+    /**
+     * Обработчики событий строки: поля изменения типа фильтрации и кнопки удаления строки.
+     */
     addConditionEvents() {
         this.conditionsCount++;
         this.conditionsCountCheck();
@@ -91,6 +112,9 @@ class Filter {
         });
     }
 
+    /**
+     * Проверяет, какие кнопки показать или скрыть в зависимости от количества строк.
+     */
     conditionsCountCheck () {
         if (this.conditionsCount === 1) {
             document.querySelector('.remove-icon').classList.add('hidden'); // hides x
@@ -109,6 +133,9 @@ class Filter {
         }
     }
 
+    /**
+     * Обработчик событий кнопок для добавления строки, вывода результата и очистки фильтра.
+     */
     addButtonsEvents() {
         // +Add button
         document.querySelector('.addCondition').addEventListener('click', () => {
@@ -133,15 +160,20 @@ class Filter {
         });
     }
 
+    /**
+     * Добавляет новую строку.
+     */
     addCondition () {
         document.getElementById('conditionsContainer').insertAdjacentHTML('beforeend' ,this.defaultCondition);
         this.addConditionEvents();
     }
 
-    // boolean
+    /**
+     * Валидация полей ввода.
+     * @returns {boolean} true, если все поля заполнены верно, иначе false.
+     */
     inputValidation() {
         let container = document.getElementById('conditionsContainer').childNodes;
-
         let result = true;
 
         for (let condition of container) {
@@ -166,6 +198,11 @@ class Filter {
         return result;
     }
 
+    /**
+     * Проверяет текстовое поле. Если поле заполнено неверно, ставит соответствующий css класс.
+     * @param {HTMLElement} input
+     * @returns {boolean} true, если поле заполнено верно, иначе false.
+     */
     inputTextValidator(input) {
         let reg = /^[a-zа-я]+$/i;
         if (!reg.test(input.value)) {
@@ -174,6 +211,11 @@ class Filter {
         return reg.test(input.value);
     }
 
+    /**
+     * Проверяет числовое поле. Если поле заполнено неверно, ставит соответствующий css класс.
+     * @param {HTMLElement} input
+     * @returns {boolean} true, если поле заполнено верно, иначе false.
+     */
     inputNumberValidator(input) {
         let reg = /^[0-9]+$/;
         if (!reg.test(input.value)) {
@@ -182,16 +224,23 @@ class Filter {
         return reg.test(input.value);
     }
 
+    /**
+     * Снимает оповещения об ошибочно заполненных полях ввода.
+     */
     removeErrors() {
         for (let i of document.querySelectorAll('.input')) {
             i.classList.remove('invalid');
         }
     }
 
+    /**
+     * Добавляет в объект для вывода результата объект с полученными из строки фильтра значениями.
+     * @param {HTMLElement} condition Заполненная строка.
+     */
     resultRender(condition) {
         this.conditions[condition.querySelector('.field').value].push({
             operation: condition.querySelector('.operation').value,
-            value: condition.querySelector('.field').value});
+            value: condition.querySelector('.input').value});
     }
 }
 
