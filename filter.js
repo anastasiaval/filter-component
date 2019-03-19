@@ -6,6 +6,10 @@ class Filter {
         this.settings = settings;
         this.defaultCondition = null; // default condition html
         this.conditionsCount = 0; // number of conditions
+        this.conditions = {
+            text: [],
+            number: [],
+        }; // result
     }
 
     init() {
@@ -16,23 +20,26 @@ class Filter {
 
     render() {
         let result = `<form class="${this.settings.formClasses.join(' ')}">
-                        <div id="conditionsContainer">`;
+                          <div id="conditionsContainer">`;
         result += this.renderDefaultCondition();
         result += `</div>
-                   <button type="button" class="addCondition ${this.settings.buttonAddClasses.join(' ')}">+ Add condition</button>
+                   <button type="button" class="addCondition ${this.settings.buttonAddClasses.join(' ')}">
+                       + Add condition</button>
                    <hr>
                    <div class="${this.settings.buttonsContainerClasses.join(' ')}">
-                        <button type="button" class="applyButton ${this.settings.buttonApplyClasses.join(' ')}">Apply</button>
-                        <button type="button" class="clearFilterButton ${this.settings.buttonClearFilterClasses.join(' ')}">Clear Filter</button>
-                    </div>
-                    </form>`;
+                        <button type="button" class="applyButton ${this.settings.buttonApplyClasses.join(' ')}">
+                            Apply</button>
+                        <button type="button" class="clearFilterButton ${this.settings.buttonClearFilterClasses
+                            .join(' ')}">Clear Filter</button>
+                   </div>
+                   </form>`;
         return result;
     }
 
     renderDefaultCondition() {
         if (!this.defaultCondition) {
             this.defaultCondition = `<div class="${this.settings.inputContainerClasses.join(' ')}">
-                                            <select class="field ${this.settings.inputClasses.join(' ')}">`;
+                                         <select class="field ${this.settings.inputClasses.join(' ')}">`;
             for (let i in this.settings.values) {
                 let defaultSelected = '';
                 if (i === this.settings.defaultField) {
@@ -43,9 +50,9 @@ class Filter {
             }
             this.defaultCondition += `</select>
                                           <select class="operation ${this.settings.inputClasses.join(' ')}">`;
-            this.defaultCondition += this.renderSelectOptions(this.settings.defaultField);// .operation options
+            this.defaultCondition += this.renderSelectOptions(this.settings.defaultField);
             this.defaultCondition += `</select>
-                                      <input type="text" class="${this.settings.inputClasses.join(' ')}">
+                                      <input type="text" class="input ${this.settings.inputClasses.join(' ')}">
                                       <span class="remove-icon hidden"></span></div>`;
         }
 
@@ -110,7 +117,12 @@ class Filter {
 
         // Apply button
         document.querySelector('.applyButton').addEventListener('click', () => {
-            console.log('obj');
+            this.removeErrors();
+            this.conditions.text = [];
+            this.conditions.number = [];
+            if (this.inputValidation()) {
+                console.log(JSON.stringify(this.conditions, null, 4));
+            } else console.error('Input error.');
         });
 
         //Clear button
@@ -124,6 +136,62 @@ class Filter {
     addCondition () {
         document.getElementById('conditionsContainer').insertAdjacentHTML('beforeend' ,this.defaultCondition);
         this.addConditionEvents();
+    }
+
+    // boolean
+    inputValidation() {
+        let container = document.getElementById('conditionsContainer').childNodes;
+
+        let result = true;
+
+        for (let condition of container) {
+            if (condition.querySelector('.input').value) {
+                if (condition.querySelector('.field').value === 'text') {
+                    if (!this.inputTextValidator(condition.querySelector('.input'))) {
+                        result = false;
+                    } else {
+                        this.resultRender(condition);
+                    }
+                }
+                if (condition.querySelector('.field').value === 'number') {
+                    if (!this.inputNumberValidator(condition.querySelector('.input'))) {
+                        result = false;
+                    } else {
+                        this.resultRender(condition);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    inputTextValidator(input) {
+        let reg = /^[a-zа-я]+$/i;
+        if (!reg.test(input.value)) {
+            input.classList.add('invalid');
+        }
+        return reg.test(input.value);
+    }
+
+    inputNumberValidator(input) {
+        let reg = /^[0-9]+$/;
+        if (!reg.test(input.value)) {
+            input.classList.add('invalid');
+        }
+        return reg.test(input.value);
+    }
+
+    removeErrors() {
+        for (let i of document.querySelectorAll('.input')) {
+            i.classList.remove('invalid');
+        }
+    }
+
+    resultRender(condition) {
+        this.conditions[condition.querySelector('.field').value].push({
+            operation: condition.querySelector('.operation').value,
+            value: condition.querySelector('.field').value});
     }
 }
 
